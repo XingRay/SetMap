@@ -44,22 +44,19 @@ class SetMap<K, V> : Map<K, Set<V>> {
         val vMap = valueMap ?: return
         val kMap = keyMap ?: return
 
-        val set = vMap[k]
-        if (set != null) {
-            set.remove(v)
-            if (set.isEmpty()) {
+        val valueSet = vMap[k]
+        if (valueSet != null) {
+            valueSet.remove(v)
+            if (valueSet.isEmpty()) {
                 vMap.remove(k)
             }
         }
 
-        val keepKey = set?.contains(v) ?: false
-        if (!keepKey) {
-            val keySet = kMap[v]
-            if (keySet != null) {
-                keySet.remove(k)
-                if (keySet.isEmpty()) {
-                    kMap.remove(v)
-                }
+        val keySet = kMap[v]
+        if (keySet != null) {
+            keySet.remove(k)
+            if (keySet.isEmpty()) {
+                kMap.remove(v)
             }
         }
     }
