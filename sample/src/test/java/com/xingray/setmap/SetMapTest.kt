@@ -16,29 +16,34 @@ class SetMapTest {
     @Test
     fun setMapTest() {
         val setMap = SetMap<String, String>()
-        setMap.add("class1", "AAA")
-        setMap.add("class1", "BBB")
+        setMap.add("class1", "aaa")
+        setMap.add("class1", "bbb")
         setMap.add("class2", "aaa")
         setMap.add("class2", "bbb")
 
-        setMap.get("class1")?.forEach {
-            assert(it == "AAA" || it == "BBB")
-        }
+        assert(setMap.size == 4)
 
-        setMap.get("class2")?.forEach {
+        setMap["class1"]?.forEach {
             assert(it == "aaa" || it == "bbb")
         }
 
-        setMap.remove("AAA")
-        setMap.remove("aaa")
-
-        setMap.get("class1")?.forEach {
-            assert(it == "BBB")
+        setMap["class2"]?.forEach {
+            assert(it == "aaa" || it == "bbb")
         }
 
-        setMap.get("class2")?.forEach {
+        setMap.remove("aaa")
+        assert(setMap.size == 2)
+
+        setMap["class1"]?.forEach {
             assert(it == "bbb")
         }
+
+        setMap["class2"]?.forEach {
+            assert(it == "bbb")
+        }
+
+        setMap.remove("bbb")
+        assert(setMap.isEmpty())
     }
 
     @Test
@@ -78,7 +83,7 @@ class SetMapTest {
         setMap.add("listeners", callback3)
         setMap.add("listeners", callback4)
 
-        setMap.get("listeners")?.forEach {
+        setMap["listeners"]?.forEach {
             it.call()
         }
 

@@ -1,7 +1,7 @@
-package com.xingray.setmap
+package com.xingray.listmap
 
 /**
- * 基于[HashMap]和[Set]实现的`K0->K1->Set<V>`型数据结构
+ * 基于[HashMap]和[java.util.LinkedList]实现的`K0->K1->List<V>`型数据结构
  *
  * @author : leixing
  * @date : 2019/9/14 16:56
@@ -10,13 +10,13 @@ package com.xingray.setmap
  *
  */
 @Suppress("unused")
-class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
+class ListMap2<K0, K1, V> : Map<K0, ListMap<K1, V>> {
 
-    private var valueMap: MutableMap<K0, SetMap<K1, V>>? = null
+    private var valueMap: MutableMap<K0, ListMap<K1, V>>? = null
     private var keyMap: MutableMap<V, MutableSet<K0>>? = null
 
     fun add(k0: K0, k1: K1, v: V) {
-        lazyGetSetMap(k0).add(k1, v)
+        lazyGetListMap(k0).add(k1, v)
         lazyGetKetSet(v).add(k0)
     }
 
@@ -26,10 +26,10 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         val keySet = keyMap[v] ?: return
 
         keySet.forEach { k0 ->
-            val setMap = valueMap[k0]
-            if (setMap != null) {
-                setMap.remove(v)
-                if (setMap.isEmpty()) {
+            val listMap = valueMap[k0]
+            if (listMap != null) {
+                listMap.remove(v)
+                if (listMap.isEmpty()) {
                     valueMap.remove(k0)
                 }
             }
@@ -42,54 +42,38 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         val keyMap = keyMap ?: return
         val valueMap = valueMap ?: return
 
-        val valueSetMap = valueMap[k0]
-        if (valueSetMap != null) {
-            valueSetMap.remove(v)
-            if (valueSetMap.isEmpty()) {
+        val listMap = valueMap[k0]
+        if (listMap != null) {
+            listMap.remove(v)
+            if (listMap.isEmpty()) {
                 valueMap.remove(k0)
             }
         }
 
-        val keySet = keyMap[v]
-        if (keySet != null) {
-            if (valueSetMap == null || !valueSetMap.contains(v)) {
-                keySet.remove(k0)
-                if (keySet.isEmpty()) {
-                    keyMap.remove(v)
-                }
-            }
-        }
+        keyMap.remove(v)
     }
 
     fun remove(k0: K0, k1: K1, v: V) {
         val keyMap = keyMap ?: return
         val valueMap = valueMap ?: return
 
-        val valueSetMap = valueMap[k0]
-        if (valueSetMap != null) {
-            valueSetMap.remove(k1, v)
-            if (valueSetMap.isEmpty()) {
+        val listMap = valueMap[k0]
+        if (listMap != null) {
+            listMap.remove(k1, v)
+            if (listMap.isEmpty()) {
                 valueMap.remove(k0)
             }
         }
 
-        val keySet = keyMap[v]
-        if (keySet != null) {
-            if (valueSetMap == null || !valueSetMap.contains(v)) {
-                keySet.remove(k0)
-                if (keySet.isEmpty()) {
-                    keyMap.remove(v)
-                }
-            }
-        }
+        keyMap.remove(v)
     }
 
-    override fun get(key: K0): SetMap<K1, V>? {
+    override fun get(key: K0): ListMap<K1, V>? {
         val map = valueMap ?: return null
         return map[key]
     }
 
-    fun get(k0: K0, k1: K1): Set<V>? {
+    fun get(k0: K0, k1: K1): List<V>? {
         val map = get(k0) ?: return null
         return map[k1]
     }
@@ -103,7 +87,6 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         return keyMap?.containsKey(v) ?: false
     }
 
-    @Suppress("MemberVisibilityCanBePrivate")
     fun sizeOf(k0: K0): Int {
         val map = valueMap ?: return 0
         return map[k0]?.size ?: 0
@@ -118,17 +101,17 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         return size == 0
     }
 
-    fun traverse(call: (K0, K1, V) -> Unit) {
+    fun forEach(call: (K0, K1, V) -> Unit) {
         val map = valueMap ?: return
         map.entries.forEach { entry ->
             val k0 = entry.key
-            entry.value.traverse { k1, v ->
+            entry.value.forEach { k1, v ->
                 call.invoke(k0, k1, v)
             }
         }
     }
 
-    private fun lazyGetValueMap(): MutableMap<K0, SetMap<K1, V>> {
+    private fun lazyGetValueMap(): MutableMap<K0, ListMap<K1, V>> {
         var map = valueMap
         if (map == null) {
             map = mutableMapOf()
@@ -137,14 +120,14 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         return map
     }
 
-    private fun lazyGetSetMap(k0: K0): SetMap<K1, V> {
+    private fun lazyGetListMap(k0: K0): ListMap<K1, V> {
         val map = lazyGetValueMap()
-        var setMap = map[k0]
-        if (setMap == null) {
-            setMap = SetMap()
-            map[k0] = setMap
+        var listMap = map[k0]
+        if (listMap == null) {
+            listMap = ListMap()
+            map[k0] = listMap
         }
-        return setMap
+        return listMap
     }
 
     private fun lazyGetKeyMap(): MutableMap<V, MutableSet<K0>> {
@@ -166,7 +149,7 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         return keySet
     }
 
-    override val entries: Set<Map.Entry<K0, SetMap<K1, V>>>
+    override val entries: Set<Map.Entry<K0, ListMap<K1, V>>>
         get() = valueMap?.entries ?: setOf()
 
     override val keys: Set<K0>
@@ -182,14 +165,14 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
             return sum
         }
 
-    override val values: Collection<SetMap<K1, V>>
-        get() = valueMap?.values ?: setOf()
+    override val values: Collection<ListMap<K1, V>>
+        get() = valueMap?.values ?: listOf()
 
     override fun containsKey(key: K0): Boolean {
         return valueMap?.containsKey(key) ?: false
     }
 
-    override fun containsValue(value: Map<K1, Set<V>>): Boolean {
+    override fun containsValue(value: ListMap<K1, V>): Boolean {
         return valueMap?.containsValue(value) ?: false
     }
 }

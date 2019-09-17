@@ -28,10 +28,57 @@ class SetMap2Test {
         setMap2.add("grade2", "class2", "aaa22")
         setMap2.add("grade2", "class2", "bbb22")
 
-        setMap2.forEach { s, s2, s3 ->
+        setMap2.traverse { s, s2, s3 ->
             println("s=$s, s2=$s2, s3=$s3")
         }
 
         assert(setMap2.size == 8)
+    }
+
+    @Test
+    fun simulateTest() {
+        val setMap2 = SetMap2<String, String, String>()
+
+        setMap2.add("grade1", "class1", "aaa")
+
+        setMap2.add("grade2", "class1", "aaa")
+        setMap2.add("grade2", "class2", "aaa")
+
+        setMap2.add("grade3", "class1", "aaa")
+        setMap2.add("grade3", "class1", "bbb")
+
+        setMap2.add("grade4", "class1", "aaa")
+        setMap2.add("grade4", "class1", "bbb")
+        setMap2.add("grade4", "class2", "aaa")
+        setMap2.add("grade4", "class2", "bbb")
+
+        setMap2.add("grade5", "class1", "aaa")
+
+        var size = setMap2.size
+        assert(size == 10)
+
+        setMap2.remove("grade1", "aaa")
+        size--
+        assert(setMap2.size == size)
+
+        setMap2.remove("grade2", "aaa")
+        size -= 2
+        assert(setMap2.size == size)
+
+        setMap2.remove("grade3", "aaa")
+        size--
+        assert(setMap2.size == size)
+
+        setMap2.remove("grade4", "class1", "aaa")
+        size--
+        assert(setMap2.size == size)
+
+        setMap2.remove("aaa")
+        size = 3
+        println(setMap2.size)
+        assert(setMap2.size == size)
+
+        setMap2.remove("bbb")
+        assert(setMap2.isEmpty())
     }
 }

@@ -1,24 +1,27 @@
 @file:Suppress("unused")
 
-package com.xingray.setmap
+package com.xingray.listmap
+
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * 基于[HashMap]和[Set]实现的`K->Set<V>`型数据结构
+ * 基于[HashMap]和[java.util.LinkedList]实现的`K->List<V>`型数据结构
  *
  * @author : leixing
  * @date : 2019/9/14 16:37
  * @version : 1.0.0
  * mail : leixing1012@qq.com
  *
+ * todo List<V> => Set<V>
  *
  */
-class SetMap<K, V> : Map<K, Set<V>> {
+class ListMap<K, V> : Map<K, List<V>> {
 
-    private var valueMap: MutableMap<K, MutableSet<V>>? = null
+    private var valueMap: MutableMap<K, MutableList<V>>? = null
     private var keyMap: MutableMap<V, MutableSet<K>>? = null
 
     fun add(k: K, v: V) {
-        lazyGetValueSet(k).add(v)
+        lazyGetValueList(k).add(v)
         lazyGetKeySet(v).add(k)
     }
 
@@ -28,10 +31,10 @@ class SetMap<K, V> : Map<K, Set<V>> {
         val keySet = kMap[v] ?: return
 
         keySet.forEach { k ->
-            val set = vMap[k]
-            if (set != null) {
-                set.remove(v)
-                if (set.isEmpty()) {
+            val list = vMap[k]
+            if (list != null) {
+                list.remove(v)
+                if (list.isEmpty()) {
                     vMap.remove(k)
                 }
             }
@@ -44,24 +47,27 @@ class SetMap<K, V> : Map<K, Set<V>> {
         val vMap = valueMap ?: return
         val kMap = keyMap ?: return
 
-        val valueSet = vMap[k]
-        if (valueSet != null) {
-            valueSet.remove(v)
-            if (valueSet.isEmpty()) {
+        val list = vMap[k]
+        if (list != null) {
+            list.remove(v)
+            if (list.isEmpty()) {
                 vMap.remove(k)
             }
         }
 
-        val keySet = kMap[v]
-        if (keySet != null) {
-            keySet.remove(k)
-            if (keySet.isEmpty()) {
-                kMap.remove(v)
+        val keepKey = list?.contains(v) ?: false
+        if (!keepKey) {
+            val keySet = kMap[v]
+            if (keySet != null) {
+                keySet.remove(k)
+                if (keySet.isEmpty()) {
+                    kMap.remove(v)
+                }
             }
         }
     }
 
-    override fun get(key: K): Set<V>? {
+    override fun get(key: K): List<V>? {
         return valueMap?.get(key)
     }
 
@@ -83,7 +89,7 @@ class SetMap<K, V> : Map<K, Set<V>> {
         return size == 0
     }
 
-    fun traverse(call: (K, V) -> Unit) {
+    fun forEach(call: (K, V) -> Unit) {
         val map = valueMap ?: return
         map.entries.forEach { entry ->
             val key = entry.key
@@ -93,17 +99,17 @@ class SetMap<K, V> : Map<K, Set<V>> {
         }
     }
 
-    private fun lazyGetValueSet(k: K): MutableSet<V> {
+    private fun lazyGetValueList(k: K): MutableList<V> {
         val map = lazyGetValueMap()
-        var set = map[k]
-        if (set == null) {
-            set = mutableSetOf()
-            map[k] = set
+        var list = map[k]
+        if (list == null) {
+            list = CopyOnWriteArrayList()
+            map[k] = list
         }
-        return set
+        return list
     }
 
-    private fun lazyGetValueMap(): MutableMap<K, MutableSet<V>> {
+    private fun lazyGetValueMap(): MutableMap<K, MutableList<V>> {
         var map = valueMap
         if (map == null) {
             map = HashMap()
@@ -131,7 +137,7 @@ class SetMap<K, V> : Map<K, Set<V>> {
         return keySet
     }
 
-    override val entries: Set<Map.Entry<K, Set<V>>>
+    override val entries: Set<Map.Entry<K, List<V>>>
         get() = valueMap?.entries ?: setOf()
 
     override val keys: Set<K>
@@ -148,14 +154,14 @@ class SetMap<K, V> : Map<K, Set<V>> {
             return sum
         }
 
-    override val values: Collection<Set<V>>
-        get() = valueMap?.values ?: setOf()
+    override val values: Collection<List<V>>
+        get() = valueMap?.values ?: listOf()
 
     override fun containsKey(key: K): Boolean {
         return valueMap?.containsKey(key) ?: false
     }
 
-    override fun containsValue(value: Set<V>): Boolean {
+    override fun containsValue(value: List<V>): Boolean {
         return valueMap?.containsValue(value) ?: false
     }
 }
