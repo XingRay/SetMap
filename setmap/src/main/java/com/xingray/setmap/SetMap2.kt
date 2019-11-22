@@ -10,10 +10,10 @@ package com.xingray.setmap
  *
  */
 @Suppress("unused")
-class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
+class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>?>?> {
 
-    private var valueMap: MutableMap<K0, SetMap<K1, V>>? = null
-    private var keyMap: MutableMap<V, MutableSet<K0>>? = null
+    private var valueMap: MutableMap<K0, SetMap<K1, V>?>? = null
+    private var keyMap: MutableMap<V, MutableSet<K0>?>? = null
 
     fun add(k0: K0, k1: K1, v: V) {
         lazyGetSetMap(k0).add(k1, v)
@@ -122,13 +122,13 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         val map = valueMap ?: return
         map.entries.forEach { entry ->
             val k0 = entry.key
-            entry.value.traverse { k1, v ->
+            entry.value?.traverse { k1, v ->
                 call.invoke(k0, k1, v)
             }
         }
     }
 
-    private fun lazyGetValueMap(): MutableMap<K0, SetMap<K1, V>> {
+    private fun lazyGetValueMap(): MutableMap<K0, SetMap<K1, V>?> {
         var map = valueMap
         if (map == null) {
             map = mutableMapOf()
@@ -147,7 +147,7 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         return setMap
     }
 
-    private fun lazyGetKeyMap(): MutableMap<V, MutableSet<K0>> {
+    private fun lazyGetKeyMap(): MutableMap<V, MutableSet<K0>?> {
         var map = keyMap
         if (map == null) {
             map = mutableMapOf()
@@ -166,7 +166,7 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
         return keySet
     }
 
-    override val entries: Set<Map.Entry<K0, SetMap<K1, V>>>
+    override val entries: Set<Map.Entry<K0, Map<K1, Set<V>?>?>>
         get() = valueMap?.entries ?: setOf()
 
     override val keys: Set<K0>
@@ -182,14 +182,14 @@ class SetMap2<K0, K1, V> : Map<K0, Map<K1, Set<V>>> {
             return sum
         }
 
-    override val values: Collection<SetMap<K1, V>>
+    override val values: Collection<Map<K1, Set<V>?>?>
         get() = valueMap?.values ?: setOf()
 
     override fun containsKey(key: K0): Boolean {
         return valueMap?.containsKey(key) ?: false
     }
 
-    override fun containsValue(value: Map<K1, Set<V>>): Boolean {
+    override fun containsValue(value: Map<K1, Set<V>?>?): Boolean {
         return valueMap?.containsValue(value) ?: false
     }
 }

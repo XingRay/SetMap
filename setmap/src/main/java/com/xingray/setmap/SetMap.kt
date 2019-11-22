@@ -12,10 +12,10 @@ package com.xingray.setmap
  *
  *
  */
-class SetMap<K, V> : Map<K, Set<V>> {
+class SetMap<K, V> : Map<K, Set<V>?> {
 
-    private var valueMap: MutableMap<K, MutableSet<V>>? = null
-    private var keyMap: MutableMap<V, MutableSet<K>>? = null
+    private var valueMap: MutableMap<K, MutableSet<V>?>? = null
+    private var keyMap: MutableMap<V, MutableSet<K>?>? = null
 
     fun add(k: K, v: V) {
         lazyGetValueSet(k).add(v)
@@ -28,12 +28,10 @@ class SetMap<K, V> : Map<K, Set<V>> {
         val keySet = kMap[v] ?: return
 
         keySet.forEach { k ->
-            val set = vMap[k]
-            if (set != null) {
-                set.remove(v)
-                if (set.isEmpty()) {
-                    vMap.remove(k)
-                }
+            val set = vMap[k] ?: return@forEach
+            set.remove(v)
+            if (set.isEmpty()) {
+                vMap.remove(k)
             }
         }
 
@@ -87,7 +85,7 @@ class SetMap<K, V> : Map<K, Set<V>> {
         val map = valueMap ?: return
         map.entries.forEach { entry ->
             val key = entry.key
-            entry.value.forEach { v ->
+            entry.value?.forEach { v ->
                 call.invoke(key, v)
             }
         }
@@ -103,7 +101,7 @@ class SetMap<K, V> : Map<K, Set<V>> {
         return set
     }
 
-    private fun lazyGetValueMap(): MutableMap<K, MutableSet<V>> {
+    private fun lazyGetValueMap(): MutableMap<K, MutableSet<V>?> {
         var map = valueMap
         if (map == null) {
             map = HashMap()
@@ -112,7 +110,7 @@ class SetMap<K, V> : Map<K, Set<V>> {
         return map
     }
 
-    private fun lazyGetKeyMap(): MutableMap<V, MutableSet<K>> {
+    private fun lazyGetKeyMap(): MutableMap<V, MutableSet<K>?> {
         var map = keyMap
         if (map == null) {
             map = mutableMapOf()
@@ -131,7 +129,7 @@ class SetMap<K, V> : Map<K, Set<V>> {
         return keySet
     }
 
-    override val entries: Set<Map.Entry<K, Set<V>>>
+    override val entries: Set<Map.Entry<K, Set<V>?>>
         get() = valueMap?.entries ?: setOf()
 
     override val keys: Set<K>
@@ -148,14 +146,14 @@ class SetMap<K, V> : Map<K, Set<V>> {
             return sum
         }
 
-    override val values: Collection<Set<V>>
+    override val values: Collection<Set<V>?>
         get() = valueMap?.values ?: setOf()
 
     override fun containsKey(key: K): Boolean {
         return valueMap?.containsKey(key) ?: false
     }
 
-    override fun containsValue(value: Set<V>): Boolean {
+    override fun containsValue(value: Set<V>?): Boolean {
         return valueMap?.containsValue(value) ?: false
     }
 }
